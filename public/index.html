@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Formulaire Candidat</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Ajouter un Candidat</h1>
+  <form id="candidatForm" enctype="multipart/form-data">
+    <input type="text" name="nom" placeholder="Nom" required>
+    <input type="text" name="prenom" placeholder="Prénom" required>
+    <input type="email" name="email" placeholder="Email" required>
+    <input type="text" name="telephone" placeholder="Téléphone">
+    <input type="text" name="adresse" placeholder="Adresse">
+    <input type="text" name="metiers" placeholder='["Developpeur"]'>
+    <input type="text" name="departements" placeholder='["62"]'>
+    <input type="checkbox" name="rqth"> RQTH
+    <input type="text" name="restrictions" placeholder="Restrictions">
+    <input type="number" name="experience" placeholder="Années expérience">
+    <input type="text" name="competences" placeholder='["JS","Node"]'>
+    <input type="file" name="cv" required>
+    <input type="file" name="lettre" required>
+    <button type="submit">Envoyer</button>
+  </form>
+
+  <script>
+    const form = document.getElementById('candidatForm');
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      const data = new FormData(form);
+      const res = await fetch('http://localhost:3000/api/candidats', {
+        method: 'POST',
+        body: data
+      });
+      const json = await res.json();
+      console.log(json);
+      alert("Candidat ajouté !");
+    });
+  </script>
+</body>
+</html>
