@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard Employeur</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Dashboard Employeur</h1>
+
+  <div>
+    <h2>Ajouter une Offre</h2>
+    <form id="offreForm">
+      <input type="text" name="titre" placeholder="Titre de l'offre" required>
+      <input type="text" name="description" placeholder="Description" required>
+      <input type="text" name="metier" placeholder="Métier" required>
+      <input type="text" name="departement" placeholder="Département" required>
+      <input type="hidden" name="id_employeur" value="EMPLOYEUR_ID_ICI">
+      <button type="submit">Ajouter Offre</button>
+    </form>
+  </div>
+
+  <div>
+    <h2>Liste des Offres et Matching</h2>
+    <div id="offresList"></div>
+  </div>
+
+<script>
+const offresList = document.getElementById('offresList');
+const offreForm = document.getElementById('offreForm');
+
+// Ajouter une offre
+offreForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  const data = {};
+  new FormData(offreForm).forEach((v,k) => data[k] = v);
+
+  const res = await fetch('http://localhost:3000/api/offres', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  const json = await res.json();
+  alert('Offre ajoutée !');
+  loadOffres();
+});
+
+// Charger toutes les offres et leurs candidats matchés
+async function loadOffres() {
+  offresList.innerHTML = '';
+  const res = await fetch('http://localhost:3000/api/offres');
+  const offres = await res.json();
+
+  for (let offre of offres) {
+    const div = document.createElement('div');
+    div.innerHTML = `
+      <h3>${offre.titre} (${offre.metier} - ${offre.departement})</h3>
+      <p>${offre.description}</p>
+      <button onclick="loadMatching('${offre.id}')">Voir Candidats Matchés</button>
+      <ul id="matches-${offre.id}"></ul>
+    `;
+    offresList.appendChild(div);
+  }
+}
+
+// Charger les candidats matchés pour une offre
+async function loadMatching(offreId) {
+  const res = await fetch(`http://localhost:3000/api/matching?offreId=${offreId}`);
+  const matches = await res.json();
+  const ul = document.getElementById(`matches-${offreId}`);
+  ul.innerHTML = '';
+
+  for (let m of matches) {
+    // Récupérer info candidat
+    const resC = await fetch(`http://localhost:3000/api/candidats/${m.id_candidat}`);
+    const candidat = await resC.json();
+
+    const li = document.createElement('li');
+    li.innerHTML = `
+      ${candidat.prenom} ${candidat.nom} - Score: ${m.score} 
+      <a href="${candidat.cv_url}" target="_blank">CV</a> | 
+      <a href="${candidat.lettre_url}" target="_blank">Lettre</a>
+    `;
+    ul.appendChild(li);
+  }
+}
+
+// Initial load
+loadOffres();
+</script>
+
+</body>
+</html>
